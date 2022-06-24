@@ -1,0 +1,248 @@
+.footer-container{
+    width: 100vw;
+    height: 300px;
+    background-color: var(--mainBlue);
+    /* border: var(--borderWidth) solid var(--softBlack); */
+    border-top: var(--border-w2) solid var(--mainWhite);
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.footer-wrapper{
+    height: 100%;
+    padding: 30px 10%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: auto;
+}
+
+.footer-cr{
+    text-align: right;
+    color: var(--mainWhite);
+    font-size: 15px;
+}
+.f-col{
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-col1{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-col1-box1{
+    border-right: var(--border-w2) solid var(--mainWhite);
+    padding-right: 20px;
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.contact-footer{
+    margin-top: 20px;
+}
+
+.footer-logos{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+}
+
+.footer-nav-lists{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    color: var(--mainWhite);
+}
+
+.f-nav-list{
+    color: var(--mainWhite);
+    text-align: left;
+    text-decoration: none!important;
+    font-weight: 500;
+}
+
+.footer-col2{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+.footer-h1{
+    color: var(--mainWhite);
+    font-size: 15px;
+    text-align: center;
+    transform: translateY(-30%);
+    font-weight: 600;
+}
+
+/* .fa{
+    color: var(--DarkGrey);
+    font-size: 26px;
+} */
+
+.f-soc{
+    display: inline-block;
+    text-decoration: none;
+    width: 40px;
+	margin: 5px;
+    height: 40px;
+    line-height: 50px;
+    font-size: 25px;
+    border-radius: var(--borderRadiusLg);
+    text-align: center;
+    vertical-align: middle;
+    overflow: hidden;
+    font-weight: bold;
+    transition: .3s;
+    border: var(--borderWidth) solid var(--softBlack);
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    background-color: white;
+}
+.f-soc .fa {
+    line-height: 40px;
+    color: var(--softBlack);
+}
+.f-soc:hover  .fa{
+    color: white!important;
+}
+.f-soc:hover{
+    -webkit-transform: translateY(-5px);
+    -ms-transform: translateY(-5px);
+    transform: translateY(-5px);
+}
+.f-soc.shfb:hover {background: #6680d8;}
+.f-soc.shwa:hover {background: #7bda72;}
+.f-soc.shml:hover {background: #fd6969;}
+.f-soc.shig:hover {background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);}
+
+.footer-col1 .footer-nav-lists .f-nav-list:hover{
+    color: var(--mainRed)!important;
+}
+
+#footer-ppid-logo{
+    height: 70px;
+}
+#footer-felari-logo{
+    padding-top: 5px;
+    height: 65px;
+}
+#footer-ppm-logo{
+    height: 70px;
+}
+
+.footer-col2-row1{
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    transform: translateY(-30%);
+}
+
+.footer-col2-row1 a:hover{
+    background: var(--veryLightGrey);
+}
+
+.footer-col2-row1 a:hover .fa:first-child{
+    color: var(--DarkGrey);
+}
+
+.section1-f-soc{
+    display: flex;
+    flex-direction: row;
+}
+
+@media screen and (max-width: 767px) {
+    .footer-col2-row1{
+        transform: translateY(-10%);
+    }
+    .section1-f-soc{
+        display: flex;
+        flex-direction: column;
+    }
+    .footer-h1{
+        transform: translateY(-20%);
+    }
+}
+
+@media screen and (max-width: 605px) {
+    .footer-wrapper{
+        flex-direction: column;
+    }
+    .footer-col2-row1{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        transform: translateY(-30%);
+        flex-wrap: wrap;
+    }
+    .section1-f-soc{
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+@media screen and (max-width: 453px) {
+    .footer-logos{
+        gap: 6px;
+    }
+    .footer-cr{
+        font-size: 10px;
+    }
+    .f-soc{
+        width: 40px;
+        margin:2px;
+        height: 40px;
+        line-height: 40px;
+        font-size: 19px;
+    }
+    .f-soc .fa {
+        line-height:35px;
+        color: var(--mainBlack);
+    }
+    .f-nav-list{
+        font-size: 14px;
+    }
+    .footer-h1{
+        font-size: 14px;
+    }
+    #footer-ppid-logo{
+        height: 50px;
+    }
+    #footer-felari-logo{
+        padding-top: 5px;
+        height: 45px;
+    }
+    #footer-ppm-logo{
+        height: 50px;
+    }
+}
+
+@media screen and (max-width: 304px){
+    .footer-logos{
+        gap: 3px;
+    }
+    #footer-ppid-logo{
+        height: 40px;
+    }
+    #footer-felari-logo{
+        padding-top: 5px;
+        height: 35px;
+    }
+    #footer-ppm-logo{
+        height: 40px;
+    }
+}

@@ -1,0 +1,309 @@
+/* Special Speakers */
+
+.card__desc_school {
+    padding: 0 2em 0.1em;
+    margin: 0;
+    color: var(--mainWhite);
+    font-weight: 700;
+    font-size: 15px;
+    font-family: "Outfit";
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: scroll;
+    box-sizing: border-box;
+    text-align: center;
+}
+.card__desc_school i{
+    font-size: 16px;
+    margin-right: 6px;
+    margin-top: 1px;
+}
+.card__desc_major {
+    padding: 0 2em 0.5em;
+    margin: 0;
+    /* margin-left: 20px; */
+    color: var(--mainBlack);
+    font-family: "Outfit";
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: scroll;
+    box-sizing: border-box;
+    font-style: italic;
+    font-size: 14px;
+    text-align: center;
+}
+
+.speaker-card-overlay .speaker__desc{
+    text-align: center;
+}
+
+.sp-speakers-container{
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--mainBlue);
+    overflow: hidden;
+}
+
+.sp-speaker-col{
+    display: flex;
+    flex-direction: column;
+    /* max-width: 85%; */
+    max-height: 80%;
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    z-index: 14;
+    gap: 10px;
+}
+
+.sp-speaker-col h1{
+    text-align: center;
+    font-family: "Montserrat";
+    font-weight: 800;
+    /* font-style: italic; */
+    color: var(--mainWhite);
+    font-size: 70px;
+    max-width: 80%;
+    margin: auto;
+}
+
+.sp-speaker-img-cont{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80%;
+    margin-top: auto;
+}
+.sp-speaker-img-cont img{
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.sp-speaker-header-deco{
+    position: absolute;
+    z-index: 12;
+    width: 100%;
+    height: 100%;
+}
+
+.sp-speaker-header-deco img:first-child{
+    position: absolute;
+    width: 400px;
+    top: 20%;
+    right: 10%;
+    z-index: 13;
+}
+.sp-speaker-header-deco img:last-child{
+    position: absolute;
+    width: 400px;
+    top: 10%;
+    left: 10%;
+    z-index: 13;
+}
+
+@media screen and (max-width: 1176px) {
+    .sp-speaker-header-deco img:first-child{
+        position: absolute;
+        width: 300px;
+        top: 10%;
+        right: 10%;
+        z-index: 13;
+    }
+    .sp-speaker-header-deco img:last-child{
+        position: absolute;
+        width: 300px;
+        top: 10%;
+        left: 10%;
+        z-index: 13;
+    }
+}
+
+@media screen and (max-width: 780px){
+    .sp-speaker-header-deco img:first-child{
+        position: absolute;
+        width: 300px;
+        top: 20%;
+        right: 2%;
+        z-index: 13;
+    }
+    .sp-speaker-header-deco img:last-child{
+        position: absolute;
+        width: 300px;
+        top: 10%;
+        left: 2%;
+        z-index: 13;
+    }
+}
+
+@media screen and (max-width: 600px){
+    .sp-speaker-header-deco img:first-child{
+        position: absolute;
+        width: 200px;
+        top: 20%;
+        right: 2%;
+        z-index: 13;
+    }
+    .sp-speaker-header-deco img:last-child{
+        position: absolute;
+        width: 200px;
+        top: 10%;
+        left: 2%;
+        z-index: 13;
+    }
+    .sp-speaker-col h1{
+        font-size: 50px;
+    }
+    .sp-speaker-col{
+        gap: 50px;
+    }
+}
+
+/* animation */
+.sp-scroll-down{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    position: absolute;
+    z-index: 15;
+    padding: 4px;
+    padding-top: 10px;
+    border-bottom-left-radius: 60px;
+    border-bottom-right-radius: 60px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: var(--mainBlue);
+    line-height: 10px;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-name: sp-pop-up-continues;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+@keyframes sp-pop-up-continues {
+    0%   {color:white; bottom:50px;}
+    25%   {color:var(--customYellow); bottom: 30px;}
+    80%    {color: var(--customYellow); bottom: 20px;}
+    100%    {color: white; bottom: 50px;}
+}
+
+.sp-edufest-rounded{
+    position: absolute;
+    bottom: 100px;
+    right: 100px;
+    animation-name: sp-rotate-continues;
+    animation-duration: 10s;
+    animation-iteration-count: infinite;
+}
+@keyframes sp-rotate-continues {
+    from   {transform: rotate(0deg);}
+    to   {transform: rotate(360deg);}
+}
+
+
+@media screen and (max-width: 790px) {
+    .sp-edufest-rounded{
+        display: none;
+    }
+}
+
+/* Speakers */
+.speaker-blank-transition{
+    height: 15vh;
+    width: 100vw;
+    background-color:var(--mainBlue);
+}
+
+.speakers-container{
+    background-color: var(--mainBlue);
+}
+
+.speakers-wrapper{
+    width: 85%;
+    margin: auto;
+}
+
+.speakers-title{
+    text-align: center;
+    font-family: "Montserrat";
+    font-style: italic;
+    font-weight: 700;
+    font-size: 50px;
+    color: var(--mainWhite);
+    padding-top: 10%;
+    padding-bottom: 5%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.speakers-content{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    max-width: 1150px;
+    margin: auto;
+}
+
+.speakers-grid{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    height: auto;
+    width: 100%;
+    margin: 20px auto;
+    gap: 10px;
+}
+
+/* speaker card */
+.speakers-grid .custom-card{
+    margin: 20px auto 0 auto;
+}
+
+.speakers-grid .img__card-container {
+    width: auto;
+    height: 400px;
+    width: 350px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    box-sizing: border-box;
+}
+
+@media screen and (max-width: 670px){
+    .speaker-card{
+        width: 300px;
+        height: 450px;
+    }
+    .speaker-img-cont{
+        height: 380px;
+        width: 300px;
+    }
+    .speakers-title,
+    .sp-speakers-title{
+        font-size: 40px;
+    }
+}
+@media screen and (max-width: 342px){
+    .speaker-card{
+        width: 260px;
+        height: 450px;
+    }
+    .speaker-img-cont{
+        height: 260px;
+        width: 300px;
+    }
+    .speakers-title,
+    .sp-speakers-title{
+        font-size: 30px;
+    }
+}

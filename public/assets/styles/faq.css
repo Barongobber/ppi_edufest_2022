@@ -1,0 +1,328 @@
+/* Button */
+.faq-btn-float{
+  padding: 0px 10px;
+  background-color: var(--mainRed);
+  text-decoration: none!important;
+  position: fixed;
+  bottom: 90px;
+  right: 30px;
+  border-radius: 30px;
+  /* height: 45px;*/
+  width: 45px;
+  line-height: 45px;
+  box-sizing: border-box;
+  z-index: 299;
+  box-shadow: var(--Shadow);
+}
+
+.faq-btn-float:hover{
+  background-color: var(--mainWhite);
+}
+.faq-btn-float:hover .faq-btn-icon{
+    color: var(--mainBlack);
+}
+
+#faq-title-h1{
+    font-family: "Work Sans";
+    font-style: italic;
+    font-weight: 800;
+    color: var(--mainBlack);
+    text-align: center;
+}
+#cp-title-h1{
+    font-family: "Work Sans";
+    font-style: italic;
+    font-weight: 800;
+    color: var(--mainBlack);
+    text-align: center;
+}
+
+.faq-btn-icon{
+  display: block;
+  font-size: 23px;
+  font-weight: 900;
+  text-align: center;
+  color: white;
+  font-family: "Roboto";
+}
+.cp-btn-float{
+  padding: 0px 10px;
+  background-color: var(--mainSoftGreen);
+  text-decoration: none!important;
+  position: fixed;
+  bottom: 33px;
+  right: 30px;
+  border-radius: 30px;
+  height: 45px;
+  width: 45px;
+  /* line-height: 45px; */
+  box-sizing: border-box;
+  z-index: 299;
+  box-shadow: var(--Shadow);
+  display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cp-btn-float:hover{
+  background-color: var(--mainWhite);
+}
+.cp-btn-float:hover .cp-btn-icon{
+    color: var(--mainBlack);
+}
+
+.cp-btn-icon{
+  display: block;
+  font-size: 23px;
+  font-weight: 900;
+  text-align: center;
+  color: white;
+}
+
+/* Modal */
+.faq-modal{
+  display: none;
+  border: var(--borderWidth) solid var(--mainBlack);
+  width: 60vw;
+  height: 70vh;
+  overflow-y: scroll;
+  background-color: var(--mainWhite);
+  border-radius: 30px;
+  position: fixed;
+  z-index: 300;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: hidden;
+  box-shadow: var(--Shadow);
+}
+
+.show-faq{
+  display: block;
+}
+
+.faq-modal-wrapper{
+  width: 60vw;
+  height: 70vh;
+}
+
+.close-modal-faq{
+  color: var(--mainBlack);
+  display: flex;
+  justify-content: end;
+  /* transform: translate(-5%, 50%); */
+  padding: 10px;
+  font-size: 40px;
+}
+
+.faq-container{
+  width: 80%;
+  margin: auto;
+}
+
+.faq-accordion {
+    background-color: var(--mainPurple);
+    color: var(--mainWhite);
+    cursor: pointer;
+    padding: 15px 15px 10px 15px;
+    width: 100%;
+    border: var(--borderWidth) solid var(--mainBlack);
+    text-align: left;
+    outline: none;
+    font-size: 10px;
+    transition: 0.4s;
+    border-radius: 20px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    line-height: 20px;
+  }
+
+  .faq-accordion h3{
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .active,
+  .faq-accordion:hover {
+    background-color: var(--mainSoftPurple);
+  }
+
+  .faq-accordion:after {
+    content: "\002B";
+    color: var(--mainBlack);
+    font-weight: bold;
+    margin-left: 5px;
+  }
+
+  button.active:after {
+    content: "\2212";
+  }
+
+  .faq-panel {
+    padding: 0 20px;
+    background-color: var(--mainWhite);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    width: 100%;
+  }
+
+  .faq-panel p {
+    font-weight: 500;
+    padding-bottom: 10px;
+    padding-top: 20px;
+  }
+
+  .faq-container h1 {
+    display: block;
+    text-align: center;
+    margin-bottom: 50px;
+    margin-top: 10px;
+    color: black;
+    font-family: 'Permanent Marker';
+  }
+  .close-modal-faq{
+    cursor: pointer;
+  }
+
+  .telegram-btn{
+    background-color: var(--mainBlue);
+    color: var(--mainWhite);
+    padding: 10px;
+    border-radius: 20px;
+    text-align: center;
+    text-decoration: none!important;
+    justify-content: center;
+    font-size: 15px;
+    display: flex;
+    width: 150px;
+    margin: 10px auto;
+  }
+
+  .telegram-btn:hover{
+    background-color: var(--mainWhite);
+    color: var(--mainBlue);
+    border: 2px solid var(--mainBlue);
+  }
+
+  @media screen and (max-width: 500px) {
+    .faq-modal{
+      width: 90vw;
+      height: 90vh;
+    }
+    .faq-modal-wrapper{
+      width: 90vw;
+      height: 90vh;
+    }
+  }
+
+.cp-modal{
+  display: none;
+  width: 60vw;
+  height: 70vh;
+  overflow-y: scroll;
+  background-color: var(--mainWhite);
+  border-radius: 30px;
+  position: fixed;
+  z-index: 300;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: hidden;
+  box-shadow: var(--Shadow);
+}
+
+.show-cp{
+  display: block;
+}
+
+.cp-modal-wrapper{
+  width: 60vw;
+  height: 70vh;
+}
+
+.close-modal-cp{
+  color: var(--mainBlack);
+  display: flex;
+  justify-content: end;
+  /* transform: translate(-5%, 50%); */
+  padding: 10px;
+  font-size: 40px;
+}
+
+.cp-container{
+  width: 80%;
+  height: 80%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cp-modal-box{
+    width: 50%;
+    height: 80%;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.cp-modal-box-name h2{
+    font-size: 25px;
+    color: var(--mainWhite);
+    font-weight: 600;
+}
+
+.cp-modal-box-col{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    width: auto;
+    height: auto;
+    gap: 20px;
+    background-color: var(--mainPurple);
+    /* border: 5px solid var(--mainPurple); */
+    border-radius: 20px;
+}
+
+.cp-modal-box-nmbr a{
+    border-radius: 20px;
+    text-decoration: none!important;
+    font-size: 25px;
+    color: var(--mainWhite);
+    background-color: var(--mainLightGreen);
+    padding: 10px;
+    text-align: center;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.cp-modal-box-nmbr a:hover{
+    color: var(--mainLightGreen);
+    background-color: var(--mainWhite);
+}
+
+.cp-modal-box-nmbr i{
+    margin-right: 5px;
+}
+
+
+  @media screen and (max-width: 500px) {
+    .cp-modal{
+      width: 90vw;
+      height: 90vh;
+    }
+    .cp-modal-wrapper{
+      width: 90vw;
+      height: 90vh;
+    }
+  }
