@@ -29,6 +29,7 @@ Install all dependencies
 ```
 
 Copy the example env file and make the required configuration changes in the .env file
+
 NOTE: Change the variable within this file according to your local DB setting
 
 ```bash
