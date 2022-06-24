@@ -18,7 +18,7 @@ Laravel has the most extensive and thorough [documentation](https://laravel.com/
 
 If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Running in Local Environment
+## Setup for Local Environment
 
 ### XAMPP
 
@@ -29,6 +29,7 @@ Install all dependencies
 ```
 
 Copy the example env file and make the required configuration changes in the .env file
+NOTE: Change the variable within this file according to your local DB setting
 
 ```bash
     cp .env.example .env
@@ -40,7 +41,7 @@ Generate a new application key
     php artisan key:generate
 ```
 
-Create Database on DBMS (Navicat, mysql workbench, or phpmyadmin) called as **ppi_edufest_2022**
+Create Database on DBMS (Navicat, mysql workbench, or phpmyadmin) called as **ppi_edufest**
 
 Migrate the database schema
 
