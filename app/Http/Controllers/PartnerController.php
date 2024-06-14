@@ -6,109 +6,80 @@ use App\Models\Partner;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facadesuse\Input;
 
 class PartnerController extends Controller
 {
+    private function validatePartnerData(Request $request, $id = null)
+    {
+        $uniqueNameRule = $id ? Rule::unique('partners')->ignore($id) : 'unique:partners';
+        
+        return $request->validate([
+            'name' => ['required', 'string', $uniqueNameRule],
+            'picture' => $id ? ['image'] : ['required', 'image']
+        ]);
+    }
+
+    private function handlePartnerImage($partner, $picture)
+    {
+        $oldPicturePath = public_path() . '/storage/img/partners/' . $partner->id;
+        array_map('unlink', glob("$oldPicturePath/*.*"));
+        
+        $pictureName = $picture->getClientOriginalName();
+        $partner->picture = $pictureName;
+        $partner->save();
+
+        $picture->move($oldPicturePath, $pictureName);
+    }
+
     public function read()
     {
-        $partner = Partner::all();
-        return $partner;
+        return Partner::all();
     }
 
     public function updateImage($id)
     {
-        request()->validate([
-            'picture' => ['required', 'image']
-        ]);
-
-        // get partner data by id
-        $partner = Partner::find($id);
-        $oldPicturePath = public_path() . '/storage/img/partners/' . $partner->id;
-        $oldFile = $oldPicturePath . '/' . $partner->picture;
-
-        // replace old picture name
-        array_map('unlink', glob("$oldPicturePath/*.*"));
-        $pictureName = request('picture')->getClientOriginalName();
-        $partner->picture = $pictureName;
-        $partner->save();
-
-        // add new picture to storage
-        request('picture')->move($oldPicturePath, $pictureName);
+        request()->validate(['picture' => ['required', 'image']]);
+        
+        $partner = Partner::findOrFail($id);
+        $this->handlePartnerImage($partner, request('picture'));
 
         return $partner;
-        
     }
 
     public function insert()
     {
-        request()->validate([
-            'name' => ['required', 'string'],
-            'picture' => ['required', 'image']
-        ]);
+        $validatedData = $this->validatePartnerData(request());
 
-        $check = Partner::where('name', request('name'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same name as the existing one');
-
-        $pictureName = request('picture')->getClientOriginalName();
-
-        $partnerData = [
-            'name' => request('name'),
-            'picture' => $pictureName
-        ];
-        $partner = Partner::create($partnerData);
-
-        $newPath = public_path() . '/storage/img/partners/' . $partner->id;
-
-        request('picture')->move($newPath, $pictureName);
+        $partner = Partner::create($validatedData);
+        $this->handlePartnerImage($partner, request('picture'));
 
         return $partner;
     }
 
+    public function update($id, Request $request)
+    {
+        $validatedData = $this->validatePartnerData($request, $id);
 
-    public function update($id, Request $request) {
-        request()->validate([
-            'name' => [
-                'required',
-                'string',
-                Rule::unique('partners')->ignore($id)
-            ]
-        ]);
+        $partner = Partner::findOrFail($id);
+        $partner->update($validatedData);
 
-        $partner = Partner::where('id', $id)->first();
+        if ($request->hasFile('picture')) {
+            $this->handlePartnerImage($partner, $request->file('picture'));
+        }
 
-        $partnerData = [
-            'name' => $request->name
-        ];
-
-        $partner->update($partnerData);
-
-        $response = [
-            "partner" => [
-                'id' => $partner->id,
-                'name' => $partner->name,
-                'picture' => $partner->picture
-            ]
-        ];
-
-        return $response;
+        return ['partner' => $partner];
     }
 
     public function delete($id)
     {
-        $partner = Partner::where('id', $id);
-        $partnerObject = $partner->first();
+        $partner = Partner::findOrFail($id);
 
-        //Delete directory and picture
-        $picturePath = public_path() . '/storage/img/partners/' . $partnerObject->id;
+        $picturePath = public_path() . '/storage/img/partners/' . $partner->id;
         array_map('unlink', glob("$picturePath/*.*"));
         rmdir($picturePath);
 
-        $deleteSponsor = $partner->delete();
-        $msg = "success to delete";
-        return [
-            'response' => $msg
-        ];
+        $partner->delete();
+
+        return ['response' => "success to delete"];
     }
 }
