@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Event;
 use App\Models\Speaker;
 use Illuminate\Http\Request;
@@ -9,20 +10,41 @@ use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
+    private function validateEventData(Request $request, $id = null)
+    {
+        $uniqueTitleRule = $id ? Rule::unique('events')->ignore($id) : 'unique:events';
+        
+        return $request->validate([
+            'title' => ['required', 'string', $uniqueTitleRule],
+            'form_link' => ['required', 'string'],
+            'date' => ['required', 'date'],
+            'detail' => ['required', 'string'],
+            'region' => ['required', 'string'],
+            'picture' => $id ? ['image'] : ['required', 'image']
+        ]);
+    }
+
+    private function handleEventImage($event, $picture)
+    {
+        $oldPicturePath = public_path() . '/storage/img/events/' . $event->id;
+        array_map('unlink', glob("$oldPicturePath/*.*"));
+        
+        $pictureName = $picture->getClientOriginalName();
+        $event->picture = $pictureName;
+        $event->save();
+
+        $picture->move($oldPicturePath, $pictureName);
+    }
+
     public function read(Request $request) {
         $query = DB::table('events');
-        if (request('search')) {
-            $query = $query->where(function($builder) use ($request){
-                $builder->where('title', 'LIKE', "%{$request->search}%");
-            });
+        if ($request->search) {
+            $query->where('title', 'LIKE', "%{$request->search}%");
         }
-        if (request('region')) {
-            $query = $query->where(function($builder) use ($request){
-                $builder->where('region', 'LIKE', "%{$request->region}%");
-            });
+        if ($request->region) {
+            $query->where('region', 'LIKE', "%{$request->region}%");
         }
-        $query = $query->get();
-        return $query;
+        return $query->get();
     }
 
     public function detail($id){
@@ -34,122 +56,52 @@ class EventController extends Controller
     }
 
     public function readDetail($id) {
-        $event = Event::where('id', $id)->first();
+        $event = Event::findOrFail($id);
         $speakers = Speaker::where('event_id', $id)->get();
-        $data = [$event, $speakers];
-        return $data;
+        return [$event, $speakers];
     }
 
     public function updateImage($id)
     {
-        request()->validate([
-            'picture' => ['required', 'image']
-        ]);
+        request()->validate(['picture' => ['required', 'image']]);
+        
+        $event = Event::findOrFail($id);
+        $this->handleEventImage($event, request('picture'));
 
-        // get partner data by id
-        $events = Event::find($id);
-        $oldPicturePath = public_path() . '/storage/img/events/' . $events->id;
-        $oldFile = $oldPicturePath . '/' . $events->picture;
-
-        // replace old picture name
-        array_map('unlink', glob("$oldPicturePath/*.*"));
-        $pictureName = request('picture')->getClientOriginalName();
-        $events->picture = $pictureName;
-        $events->save();
-
-        // add new picture to storage
-        request('picture')->move($oldPicturePath, $pictureName);
-
-        return $events;
+        return $event;
     }
 
     public function insert() {
-        request()->validate([
-            'title' => ['required', 'string'],
-            'form_link' => ['required', 'string'],
-            'date' => ['required', 'date'],
-            'detail' => ['required', 'string'],
-            'region' => ['required', 'string'],
-            'picture' => ['required', 'image']
-        ]);
+        $validatedData = $this->validateEventData(request());
 
-        $check = Event::where('title', request('title'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same title as the existing one');
-
-        $pictureName = request('picture')->getClientOriginalName();
-
-        $eventData = [
-            'title' => request('title'),
-            'form_link' => request('form_link'),
-            'date' => request('date'),
-            'detail' => request('detail'),
-            'region' => request('region'),
-            'picture' => $pictureName
-        ];
-
-        $event = Event::create($eventData);
-
-        $newPath = public_path() . '/storage/img/events/' . $event->id;
-
-        request('picture')->move($newPath, $pictureName);
+        $event = Event::create($validatedData);
+        $this->handleEventImage($event, request('picture'));
 
         return $event;
     }
 
     public function update($id) {
-        request()->validate([
-            'title' => [
-                'required',
-                'string',
-                Rule::unique('events')->ignore($id)
-            ],
-            'form_link' => ['required', 'string'],
-            'date' => ['required', 'date'],
-            'detail' => ['required', 'string'],
-            'region' => ['required', 'string']
-        ]);
+        $validatedData = $this->validateEventData(request(), $id);
 
-        $event = Event::where('id', $id)->first();
+        $event = Event::findOrFail($id);
+        $event->update($validatedData);
 
-        $eventData = [
-            'title' => request('title'),
-            'form_link' => request('form_link'),
-            'date' => request('date'),
-            'detail' => request('detail'),
-            'region' => request('region')
-        ];
+        if (request()->hasFile('picture')) {
+            $this->handleEventImage($event, request('picture'));
+        }
 
-        $event->update($eventData);
-
-        $response = [
-            "event" => [
-                'id' => $event->id,
-                'title' => $event->title,
-                'form_link' => $event->form_link,
-                'date' => $event->date,
-                'detail' => $event->detail,
-                'region' => $event->region,
-                'picture' => $event->picture
-            ]
-        ];
-
-        return $response;
+        return ['event' => $event];
     }
 
     public function delete($id) {
-        $event = Event::where('id', $id);
-        $eventObject = $event->first();
+        $event = Event::findOrFail($id);
 
-        //Delete directory and picture
-        $picturePath = public_path() . '/storage/img/events/' . $eventObject->id;
+        $picturePath = public_path() . '/storage/img/events/' . $event->id;
         array_map('unlink', glob("$picturePath/*.*"));
         rmdir($picturePath);
 
-        $deleteEvent = $event->delete();
-        $msg = "success to delete";
-        return [
-            'response' => $msg
-        ];
+        $event->delete();
+
+        return ['response' => "success to delete"];
     }
 }
