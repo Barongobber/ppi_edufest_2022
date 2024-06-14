@@ -11,82 +11,56 @@ use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
-    public function retrieve() {
-        $admin = Admin::where('id', Auth::user()->id)->first();
-        return $admin;
-    }
+    private function validateAdminData(Request $request, $id = null)
+    {
+        $uniqueEmailRule = $id ? Rule::unique('admins')->ignore($id) : 'unique:admins';
+        $uniqueUsernameRule = $id ? Rule::unique('admins')->ignore($id) : 'unique:admins';
 
-    public function retrieveAll() {
-        $admins = Admin::all();
-        return $admins;        
-    }
-
-    public function register() {
-        //Validating request form
-        request()->validate([
+        return $request->validate([
             'name' => ['required', 'string'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string', 'min:8'],
-            'username' => ['required', 'string']
+            'email' => ['required', 'email', $uniqueEmailRule],
+            'username' => ['required', 'string', $uniqueUsernameRule],
+            'password' => $id ? ['nullable', 'string', 'min:8'] : ['required', 'string', 'min:8'],
+            'status' => ['nullable', 'string'],
         ]);
+    }
 
-        //Checking procedure of the unique attributes
-        $check = Admin::where('email', request('email'))->first();
-        if ($check)
-            abort(400, 'The email address has already been used by another account.');
+    public function retrieve() 
+    {
+        return Auth::user();
+    }
 
-        $check = Admin::where('username', request('username'))->first();
-        if ($check)
-            abort(400, 'The username has already been used by another account.');
+    public function retrieveAll() 
+    {
+        return Admin::all();
+    }
 
+    public function register() 
+    {
+        $validatedData = $this->validateAdminData(request());
 
-        $adminData = [
-            'name' => request('name'),
-            'username' => request('username'),
-            'email' => request('email'),
+        $adminData = array_merge($validatedData, [
             'password' => bcrypt(request('password')),
             'api_token' => Str::random(60),
             'status' => 'registered',
             'role' => 'admin'
-        ];
+        ]);
 
         $admin = Admin::create($adminData);
         return [
             "data" => $admin,
-            "msg" => "successfully to register your account, please ask DB admin to approve it"
+            "msg" => "Successfully registered your account. Please ask the DB admin to approve it."
         ];
     }
 
-    public function update() {
+    public function update() 
+    {
         $admin = Auth::user();
+        $validatedData = $this->validateAdminData(request(), $admin->id);
 
-        //Validating request form
-        request()->validate([
-            'name' => ['required', 'string'],
-            'email' => [
-                'required', 
-                'string', 
-                'email', 
-                'nullable', 
-                'max:255', 
-                Rule::unique('admins')->ignore($admin->id)
-            ],
-            'username' => ['required', 'string']
-        ]);
+        $admin->update($validatedData);
 
-        $data = request()->only([
-            'name',
-            'email',
-            'username'
-        ]);
-
-        //Updating
-        $data['email'] = strtolower($data['email']);
-        $admin->update($data);
-
-        //Response
-        $response = [
-            // "user" => $data
+        return [
             "user" => [
                 'id' => $admin->id,
                 'name' => $admin->name,
@@ -94,52 +68,36 @@ class AdminController extends Controller
                 'api_token' => $admin->api_token
             ]
         ];
-        return $response;
     }
 
-    public function changePassword() {
+    public function changePassword() 
+    {
         $admin = Auth::user();
-
-        $data = request()->only([
-            'password'
-        ]);
-        
-        //Validating request form
         request()->validate([
             'password' => ['required', 'min:8']
         ]);
 
-        //Updating
-        $admin->update($data);
-        $isUpdated = $admin->wasChanged();
+        $admin->update(['password' => bcrypt(request('password'))]);
 
-        //Response
-        $response = [
+        return [
             "user" => [
-                'password_updated' => $isUpdated
+                'password_updated' => $admin->wasChanged()
             ]
         ];
-
-        return $response;
     }
 
-    public function changeStatus($id) {
-        if (Auth::user()->role != "db_admin" || Auth::user()->id == $id)
-            abort(401, "Unauthorized user, can\'t use this account to change the status of other\'s account");
-        $admin = Admin::where('id', $id)->first();
+    public function changeStatus($id) 
+    {
+        $admin = Auth::user();
+        if ($admin->role != "db_admin" || $admin->id == $id) {
+            abort(401, "Unauthorized user. Can't change the status of this account.");
+        }
 
-       
-        request()->validate([
-            'status' => ['string', 'required']
-        ]); 
-        $changeStatus = request()->only([
-            'status'
-        ]); 
-        $admin->update($changeStatus);
-        $response = [
-            "admin_status" => $admin->status
-        ];
-        
-        return $response;     
+        $targetAdmin = Admin::findOrFail($id);
+        request()->validate(['status' => ['required', 'string']]);
+
+        $targetAdmin->update(['status' => request('status')]);
+
+        return ["admin_status" => $targetAdmin->status];
     }
 }
