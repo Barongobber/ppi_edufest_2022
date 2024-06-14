@@ -9,64 +9,51 @@ use Illuminate\Validation\Rule;
 class FaqController extends Controller
 {
     public function read() {
-        $faqs = Faq::all();
-        return $faqs;
+        return Faq::all();
     }
 
-    public function insert() {
-        request()->validate([
-            'question' => ['required', 'string'],
-            'answer' => ['required', 'string']
-        ]);
+    public function insert(Request $request) {
+        $this->validateFaq($request);
 
-        $check = Faq::where('question', request('question'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same question as the existing one');
+        $check = Faq::where('question', $request->question)->first();
+        if ($check) {
+            return response()->json(['error' => 'Sorry, cannot insert the same question as the existing one'], 400);
+        }
         
-        $faqData = [
-            'question' => request('question'),
-            'answer' => request('answer')
-        ];
+        $faqData = $request->only('question', 'answer');
         $faq = Faq::create($faqData);
 
-        return $faq;
+        return response()->json($faq, 201);
     }
 
-    public function update($id) {
-        request()->validate([
-            'question' => [
-                'required', 
-                'string',
-                Rule::unique('faqs')->ignore($id)
-            ],
-            'answer' => ['required', 'string']
-        ]);
+    public function update($id, Request $request) {
+        $this->validateFaq($request, $id);
 
-        $faq = Faq::where('id', $id)->first();
-        
-        $faqData = request()->only([
-            'question',
-            'answer'
-        ]);
+        $faq = Faq::findOrFail($id);
+        $faq->update($request->only('question', 'answer'));
 
-        $faq->update($faqData);
-
-        $response = [
-            "faq" => [
+        return response()->json([
+            'faq' => [
                 'id' => $faq->id,
                 'question' => $faq->question,
                 'answer' => $faq->answer
             ]
-        ];
-
-        return $response;
+        ]);
     }
 
     public function delete($id) {
-        $faq = Faq::where('id', $id)->delete();
-        $msg = "Success to delete";
-        return [
-            'response' => $msg
-        ];
+        $faq = Faq::findOrFail($id);
+        $faq->delete();
+
+        return response()->json(['response' => 'Success to delete']);
+    }
+
+    private function validateFaq(Request $request, $id = null) {
+        $uniqueRule = $id ? Rule::unique('faqs')->ignore($id) : 'unique:faqs';
+
+        $request->validate([
+            'question' => ['required', 'string', $uniqueRule],
+            'answer' => ['required', 'string']
+        ]);
     }
 }
