@@ -24,54 +24,98 @@ class SpeakerController extends Controller
                 'e.region'
             );
 
-        if (request('search')) {
-            $query = $query->where(function($builder) use ($request){
-                $builder->where('name', 'LIKE', "%{$request->search}%")
-                    ->orWhere('ppi', 'LIKE', "%{$request->search}%");
+        if ($request->has('search')) {
+            $query->where(function($builder) use ($request) {
+                $builder->where('s.name', 'LIKE', "%{$request->search}%")
+                    ->orWhere('s.ppi', 'LIKE', "%{$request->search}%");
             });
         }
 
-        if (request('region')) {
-            $query = $query->where(function($builder) use ($request){
-                $builder->where('region', 'LIKE', "%{$request->region}%");
-            });
+        if ($request->has('region')) {
+            $query->where('e.region', 'LIKE', "%{$request->region}%");
         }
-        $query = $query->get();
-        return $query;
+
+        return response()->json($query->get());
     }
 
     public function readDetail($id) {
-        $speaker = Speaker::where('id', $id)->first();
-        $data = [$speaker, $speaker->email];
-        return $data;
+        $speaker = Speaker::findOrFail($id);
+        return response()->json([
+            'speaker' => $speaker,
+            'email' => $speaker->email
+        ]);
     }
 
-    public function updateImage($id)
-    {
-        request()->validate([
+    public function updateImage($id, Request $request) {
+        $request->validate([
             'picture' => ['required', 'image']
         ]);
 
-        // get partner data by id
-        $speaker = Speaker::find($id);
-        $oldPicturePath = public_path() . '/storage/img/speakers/' . $speaker->id;
+        $speaker = Speaker::findOrFail($id);
+        $oldPicturePath = public_path("storage/img/speakers/{$speaker->id}");
 
-        // replace old picture name
+        // Replace old picture
         array_map('unlink', glob("$oldPicturePath/*.*"));
-        $pictureName = request('picture')->getClientOriginalName();
+        $pictureName = $request->file('picture')->getClientOriginalName();
         $speaker->picture = $pictureName;
         $speaker->save();
 
-        // add new picture to storage
-        request('picture')->move($oldPicturePath, $pictureName);
+        // Move new picture to storage
+        $request->file('picture')->move($oldPicturePath, $pictureName);
 
-        return $speaker;
+        return response()->json($speaker);
     }
 
-    public function insert() {
-        request()->validate([
+    public function insert(Request $request) {
+        $this->validateSpeaker($request);
+
+        if (Speaker::where('email', $request->email)->exists()) {
+            return response()->json(['error' => 'Sorry, cannot insert the same speaker\'s email as the existing one'], 400);
+        }
+
+        $pictureName = $request->file('picture')->getClientOriginalName();
+
+        $speakerData = $request->only([
+            'name', 'email', 'ppi', 'major', 'school', 'detail', 'event_id'
+        ]);
+        $speakerData['picture'] = $pictureName;
+
+        $speaker = Speaker::create($speakerData);
+        $newPath = public_path("storage/img/speakers/{$speaker->id}");
+        $request->file('picture')->move($newPath, $pictureName);
+
+        return response()->json($speaker, 201);
+    }
+
+    public function update($id, Request $request) {
+        $this->validateSpeaker($request, $id);
+
+        $speaker = Speaker::findOrFail($id);
+        $speaker->update($request->only([
+            'name', 'email', 'ppi', 'major', 'school', 'detail', 'event_id'
+        ]));
+
+        return response()->json($speaker);
+    }
+
+    public function delete($id) {
+        $speaker = Speaker::findOrFail($id);
+
+        // Delete directory and picture
+        $picturePath = public_path("storage/img/speakers/{$speaker->id}");
+        array_map('unlink', glob("$picturePath/*.*"));
+        rmdir($picturePath);
+
+        $speaker->delete();
+        return response()->json(['response' => 'success to delete']);
+    }
+
+    private function validateSpeaker(Request $request, $id = null) {
+        $uniqueRule = $id ? Rule::unique('speakers')->ignore($id) : 'unique:speakers';
+
+        $request->validate([
             'name' => ['required', 'string'],
-            'email' => ['required', 'string'],
+            'email' => ['required', 'string', $uniqueRule],
             'ppi' => ['required', 'string'],
             'major' => ['required', 'string'],
             'school' => ['required', 'string'],
@@ -79,90 +123,5 @@ class SpeakerController extends Controller
             'picture' => ['required', 'image'],
             'event_id' => ['required', 'integer']
         ]);
-
-        $check = Speaker::where('email', request('email'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same speaker\'s email as the existing one');
-
-        $pictureName = request('picture')->getClientOriginalName();
-
-        $speakerData = [
-            'name' => request('name'),
-            'email' => request('email'),
-            'ppi' => request('ppi'),
-            'major' => request('major'),
-            'school' => request('school'),
-            'detail' => request('detail'),
-            'event_id' => request('event_id'),
-            'picture' => $pictureName
-        ];
-
-        $speaker = Speaker::create($speakerData);
-
-        $newPath = public_path() . '/storage/img/speakers/' . $speaker->id;
-
-        request('picture')->move($newPath, $pictureName);
-
-        return $speaker;
-    }
-
-    public function update($id) {
-        request()->validate([
-            'name' => ['required', 'string'],
-            'email' => [
-                'required', 
-                'string',
-                Rule::unique('speakers')->ignore($id)
-            ],
-            'ppi' => ['required', 'string'],
-            'major' => ['required', 'string'],
-            'school' => ['required', 'string'],
-            'detail' => ['required', 'string'],
-            'event_id' => ['required', 'integer']
-        ]);
-
-        $speaker = Speaker::where('id', $id)->first();
-    
-        $speakerData = [
-            'name' => request('name'),
-            'email' => request('email'),
-            'ppi' => request('ppi'),
-            'major' => request('major'),
-            'school' => request('school'),
-            'detail' => request('detail'),
-            'event_id' => request('event_id')
-        ];
-
-        $speaker->update($speakerData);
-        
-        $response = [
-            "speaker" => [
-                'name' => $speaker->name,
-                'ppi' => $speaker->ppi,
-                'major' => $speaker->major,
-                'school' => $speaker->school,
-                'detail' => $speaker->detail,
-                'event_id' => $speaker->event_id,
-                'picture' => $speaker->picture
-            ]
-        ];
-
-        return $response;
-    }
-
-    public function delete($id) {
-        $speaker = Speaker::where('id', $id);
-        $speakerObject = $speaker->first();
-
-        //Delete directory and picture
-        $picturePath = public_path() . '/storage/img/speakers/' . $speakerObject->id;
-        array_map('unlink', glob("$picturePath/*.*"));
-        rmdir($picturePath);
-
-        $deleteSpeaker = $speaker->delete();
-        $msg = "success to delete";
-        return [
-            'response' => $msg
-        ];
     }
 }
