@@ -10,101 +10,83 @@ class SponsorController extends Controller
 {
     public function read() {
         $sponsors = Sponsor::all();
-        return $sponsors;
+        return response()->json($sponsors);
     }
 
-    public function updateImage($id)
+    public function updateImage($id, Request $request)
     {
-        request()->validate([
+        $request->validate([
             'picture' => ['required', 'image']
         ]);
 
-        // get sponsor data by id
-        $sponsor = Sponsor::find($id);
-        $oldPicturePath = public_path() . '/storage/img/sponsors/' . $sponsor->id;
-        
-        // replace old picture name
+        // Get sponsor data by ID
+        $sponsor = Sponsor::findOrFail($id);
+        $oldPicturePath = public_path("storage/img/sponsors/{$sponsor->id}");
+
+        // Replace old picture
         array_map('unlink', glob("$oldPicturePath/*.*"));
-        $pictureName = request('picture')->getClientOriginalName();
+        $pictureName = $request->file('picture')->getClientOriginalName();
         $sponsor->picture = $pictureName;
         $sponsor->save();
 
-        // add new picture to storage
-        request('picture')->move($oldPicturePath, $pictureName);
+        // Move new picture to storage
+        $request->file('picture')->move($oldPicturePath, $pictureName);
 
-        return $sponsor;
+        return response()->json($sponsor);
     }
 
-    public function insert() {
-        request()->validate([
-            'name' => ['required', 'string'],
-            'detail' => ['required', 'string'],
-            'picture' => ['required', 'image']
-        ]);
+    public function insert(Request $request) {
+        $this->validateSponsor($request);
 
-        $check = Sponsor::where('name', request('name'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same name as the existing one');
-        
-        $pictureName = request('picture')->getClientOriginalName();
-        
-        $sponsorData = [
-            'name' => request('name'),
-            'detail' => request('detail'),
-            'picture' => $pictureName,
-        ];
+        if (Sponsor::where('name', $request->name)->exists()) {
+            return response()->json(['error' => 'Sorry, cannot insert the same name as the existing one'], 400);
+        }
+
+        $pictureName = $request->file('picture')->getClientOriginalName();
+
+        $sponsorData = $request->only([
+            'name', 'detail'
+        ]);
+        $sponsorData['picture'] = $pictureName;
+
         $sponsor = Sponsor::create($sponsorData);
 
-        $newPath = public_path() . '/storage/img/sponsors/' . $sponsor->id;
+        $newPath = public_path("storage/img/sponsors/{$sponsor->id}");
+        $request->file('picture')->move($newPath, $pictureName);
 
-        request('picture')->move($newPath, $pictureName);
-
-        return $sponsor;
+        return response()->json($sponsor, 201);
     }
 
     public function update($id, Request $request) {
-        request()->validate([
-            'name' => [
-                'required', 
-                'string',
-                Rule::unique('sponsors')->ignore($id)
-            ],
-            'detail' => ['required', 'string']
-        ]);
+        $this->validateSponsor($request, $id);
 
-        $sponsor = Sponsor::where('id', $id)->first();
-        
-        $sponsorData = [
-            'name' => $request->name,
-            'detail' => $request->detail
-        ];
-        
-        $sponsor->update($sponsorData);
+        $sponsor = Sponsor::findOrFail($id);
+        $sponsor->update($request->only([
+            'name', 'detail'
+        ]));
 
-        $response = [
-            "sponsor" => [
-                'id' => $sponsor->id,
-                'name' => $sponsor->name,
-                'detail' => $sponsor->detail
-            ]
-        ];
-
-        return $response;
+        return response()->json($sponsor);
     }
 
     public function delete($id) {
-        $sponsor = Sponsor::where('id', $id);
-        $sponsorObject = $sponsor->first();
+        $sponsor = Sponsor::findOrFail($id);
 
-        //Delete directory and picture
-        $picturePath = public_path() . '/storage/img/sponsors/' . $sponsorObject->id;
+        // Delete directory and picture
+        $picturePath = public_path("storage/img/sponsors/{$sponsor->id}");
         array_map('unlink', glob("$picturePath/*.*"));
         rmdir($picturePath);
 
-        $deleteSponsor = $sponsor->delete();
-        $msg = "success to delete";
-        return [
-            'response' => $msg
-        ];
+        $sponsor->delete();
+        return response()->json(['response' => 'success to delete']);
+    }
+
+    private function validateSponsor(Request $request, $id = null) {
+        $uniqueRule = $id ? Rule::unique('sponsors')->ignore($id) : 'unique:sponsors';
+
+        $request->validate([
+            'name' => ['required', 'string', $uniqueRule],
+            'detail' => ['required', 'string'],
+            'picture' => ['image']
+        ]);
     }
 }

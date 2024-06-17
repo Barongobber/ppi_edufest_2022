@@ -10,164 +10,109 @@ use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
-
     public function read() {
-        $reports = Report::all();
-        return $reports;
+        return Report::all();
     }
 
     public function readDetail($id) {
-        $report = Report::where('id', $id)->first();
-        $data = [$report];
-        return $data;
+        $report = Report::findOrFail($id);
+        return response()->json($report);
     }
 
-    public function insert() {
-        request()->validate([
-            'title' => ['required', 'string'],
-            'urls_registrant' => ['required', 'string'],
-            'ranges_registrant' => ['required', 'string'],
-            'url_attendance' => ['required', 'string'],
-            'range_attendance' => ['required', 'string'],
-            'event_id' => ['required', 'integer']
-        ]);
+    public function insert(Request $request) {
+        $this->validateReport($request);
 
-        $check = Report::where('title', request('title'))->first();
-        if ($check)
-            abort(400, 'Sorry, cannot insert the same report\'s title as the existing one');
+        if (Report::where('title', $request->title)->exists()) {
+            return response()->json(['error' => 'Sorry, cannot insert the same report\'s title as the existing one'], 400);
+        }
 
-        $reportData = [
-            'title' => request('title'),
-            'urls_registrant' => request('urls_registrant'),
-            'ranges_registrant' => request('ranges_registrant'),
-            'url_attendance' => request('url_attendance'),
-            'range_attendance' => request('range_attendance'),
-            'event_id' => request('event_id')
-        ];
+        $report = Report::create($request->only([
+            'title', 
+            'urls_registrant', 
+            'ranges_registrant', 
+            'url_attendance', 
+            'range_attendance', 
+            'event_id'
+        ]));
 
-        $report = Report::create($reportData);
-
-        return $report;
+        return response()->json($report, 201);
     }
 
-    public function update($id) {
-        request()->validate([
-            'title' => [
-                'required', 
-                'string',
-                Rule::unique('reports')->ignore($id)
-            ],
-            'urls_registrant' => ['required', 'string'],
-            'ranges_registrant' => ['required', 'string'],
-            'url_attendance' => ['required', 'string'],
-            'range_attendance' => ['required', 'string'],
-            'event_id' => ['required', 'integer']
-        ]);
+    public function update($id, Request $request) {
+        $this->validateReport($request, $id);
 
-        $report = Report::where('id', $id)->first();
+        $report = Report::findOrFail($id);
+        $report->update($request->only([
+            'title', 
+            'urls_registrant', 
+            'ranges_registrant', 
+            'url_attendance', 
+            'range_attendance', 
+            'event_id'
+        ]));
 
-        $reportData = [
-            'title' => request('title'),
-            'urls_registrant' => request('urls_registrant'),
-            'ranges_registrant' => request('ranges_registrant'),
-            'url_attendance' => request('url_attendance'),
-            'range_attendance' => request('range_attendance'),
-            'event_id' => request('event_id')
-        ];
-        
-        $report->update($reportData);
-
-        $response = [
-            "report" => [
-                'title' => $report->title,
-                'urls_registrant' => $report->urls_registrant,
-                'ranges_registrant' => $report->ranges_registrant,
-                'url_attendance' => $report->url_attendance,
-                'range_attendance' => $report->range_attendance,
-                'event_id' => $report->event_id
-            ]
-        ];
-
-        return $response;
+        return response()->json($report);
     }
 
     public function generate($id) {
-        $spreadsheetController = new spreadsheetController;
-        $report = Report::where('id', $id)->first();
+        $spreadsheetController = new spreadsheetController();
+        $report = Report::findOrFail($id);
         $dataSpreadsheet = $spreadsheetController->read($id);
-        $data['title'] = $report->title;
-        $data['event_id'] = $report->event_id;
-        $data['total_registrant'] = $dataSpreadsheet['totalRegistrants'];
-        $data['total_attendance'] = $dataSpreadsheet['totalAttendances'];
-
+        
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $arrayHeader = [
-            ['Title: ', $data['title']],
-            ['Event ID: ', $data['event_id']],
-            ['Total Registrants: ', $data['total_registrant']],
-            ['Total Attendance: ', $data['total_attendance']]
+
+        $headerData = [
+            ['Title:', $report->title],
+            ['Event ID:', $report->event_id],
+            ['Total Registrants:', $dataSpreadsheet['totalRegistrants']],
+            ['Total Attendance:', $dataSpreadsheet['totalAttendances']]
         ];
+        $sheet->fromArray($headerData, null, 'B1');
 
-        $sheet->fromArray($arrayHeader, "", 'B1');
-        
-        //Section for Eligible List
-        $arrayEligible = [
-            "Eligible Email",
-            "Eligible Name",
-        ];
-        $sheet->fromArray($arrayEligible, "", 'A6');
+        // Section for Eligible List
+        $eligibleHeaders = ["Eligible Email", "Eligible Name"];
+        $sheet->fromArray($eligibleHeaders, null, 'A6');
+        $sheet->fromArray(array_chunk($dataSpreadsheet['email'], 1), null, 'A7');
+        $sheet->fromArray(array_chunk($dataSpreadsheet['name'], 1), null, 'B7');
 
-        //Writing The eligible email list
-        $arrayData = $dataSpreadsheet['email'];
-        $columnArrayData = array_chunk($arrayData, 1);
-        $sheet->fromArray($columnArrayData, "", 'A7');
-        
-        //Writing The eligible name list
-        $arrayData = $dataSpreadsheet['name'];
-        $columnArrayData = array_chunk($arrayData, 1);
-        $sheet->fromArray($columnArrayData, "", 'B7');
-        
-        //Section for Non Eligible List
-        $arrayEligible = [
-            "Non Eligible Email",
-            "Non Eligible Name",
-        ];
-        $sheet->fromArray($arrayEligible, "", 'E6');
+        // Section for Non-Eligible List
+        $nonEligibleHeaders = ["Non-Eligible Email", "Non-Eligible Name"];
+        $sheet->fromArray($nonEligibleHeaders, null, 'E6');
+        $sheet->fromArray(array_chunk($dataSpreadsheet['nonEligibleEmail'], 1), null, 'E7');
+        $sheet->fromArray(array_chunk($dataSpreadsheet['nonEligibleName'], 1), null, 'F7');
 
-        //Writing The eligible email list
-        $arrayData = $dataSpreadsheet['nonEligibleEmail'];
-        $columnArrayData = array_chunk($arrayData, 1);
-        $sheet->fromArray($columnArrayData, "", 'E7');
-        
-        //Writing The eligible name list
-        $arrayData = $dataSpreadsheet['nonEligibleName'];
-        $columnArrayData = array_chunk($arrayData, 1);
-        $sheet->fromArray($columnArrayData, "", 'F7');
+        $sheet->getStyle('A1:F6')->getFont()->setBold(true);
+        $columns = ['A', 'B', 'E', 'F'];
+        foreach ($columns as $column) {
+            $sheet->getColumnDimension($column)->setWidth(40);
+        }
+        $sheet->getColumnDimension('C')->setWidth(15);
 
-        $styleArray = array(
-            'font' => array(
-                'bold' => true
-            )
-        );
-        $sheet->getStyle('A1:F6')->applyFromArray($styleArray);
-
-        //Setting the width of columns
-        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(40);
-        $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(40);
-        $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(15);
-        $spreadsheet->getActiveSheet()->getColumnDimension('E')->setWidth(40);
-        $spreadsheet->getActiveSheet()->getColumnDimension('F')->setWidth(40);
         $writer = new Xlsx($spreadsheet);
-        $writer->save('../public/storage/file/reports/' . $report->title . ".xlsx");
-        return redirect("storage/file/reports/" . $report->title . ".xlsx");
+        $filePath = public_path("storage/file/reports/{$report->title}.xlsx");
+        $writer->save($filePath);
+
+        return response()->download($filePath);
     }
 
     public function delete($id) {
-        $report = Report::where('id', $id)->delete();
-        $msg = "Success to delete";
-        return [
-            'response' => $msg
-        ];
+        $report = Report::findOrFail($id);
+        $report->delete();
+
+        return response()->json(['response' => 'Success to delete']);
+    }
+
+    private function validateReport(Request $request, $id = null) {
+        $uniqueRule = $id ? Rule::unique('reports')->ignore($id) : 'unique:reports';
+
+        $request->validate([
+            'title' => ['required', 'string', $uniqueRule],
+            'urls_registrant' => ['required', 'string'],
+            'ranges_registrant' => ['required', 'string'],
+            'url_attendance' => ['required', 'string'],
+            'range_attendance' => ['required', 'string'],
+            'event_id' => ['required', 'integer']
+        ]);
     }
 }
