@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReportController;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +15,20 @@ use App\Http\Controllers\ReportController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/migrate-db', function () {
+    Artisan::call('optimize:clear');
+    Artisan::call('migrate:fresh --seed');
+
+    return "Migrations executed successfully";
+})->name('usr-migration');
+
+Route::get('/create-db', function () {
+    Artisan::call('optimize:clear');
+    Artisan::call('mysql:createdb ppi_edufest');
+
+    return "DB creation executed successfully";
+})->name('usr-db-creation');
 
 Route::get('/', function () {
     return view('home', [
