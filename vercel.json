@@ -8,12 +8,6 @@
         { "src": "/build/(.*)", "dest": "/public/build/" },
         { "src": "/(.*)", "dest": "/api/index.php" }
     ],
-    "builds": [
-        {
-        "src": "*.php",
-        "use": "@vercel/php"
-        }
-    ],
     "public": true,
     "buildCommand": "vite build",
     "outputDirectory": "public",
